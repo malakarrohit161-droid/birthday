@@ -1142,7 +1142,7 @@ def scene_photo_scrapbook():
             <div class="washi-tape"></div>
             <div class="handwritten-title">Beautiful ❤️</div>
             <div class="handwritten-subtitle" style="letter-spacing: 2px; font-weight: 700; color: #E76F51;">
-                MY GIRLFRIEND & MY FOREVER
+                MY WIFEE & MY BABY ❤️
             </div>
             <p style="font-family: 'Patrick Hand', cursive; font-size: 1.25rem; color: #8C533C; margin-top: -10px;">
                 "Every picture tells a story, but my favorite ones are with you."
@@ -1549,7 +1549,7 @@ def scene_choose_penguin():
                         <p>🤗 <b>A lifetime supply</b> of tight, warm hugs</p>
                         <p>😘 <b>Unlimited</b> forehead and cheek kisses</p>
                         <p>😂 <b>Unlimited</b> silly arguments and annoying jokes</p>
-                        <p>❤️ <b>And one partner</b> who promises to keep loving you forever and ever</p>
+                        <p>❤️ <b>And one loving husband</b> who plans to keep loving his Wifee & Baby forever ❤️</p>
                     </div>
                 </div>
                 """
