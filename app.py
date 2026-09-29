@@ -10,6 +10,7 @@ Dedicated with love to: Sona, Mona, Baby, Amar Paakhi 🐦❤️
 import streamlit as st
 import base64
 import os
+import re
 from pathlib import Path
 from PIL import Image
 
@@ -36,7 +37,26 @@ IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # -----------------------------------------------------------------------------
-# 2. SESSION STATE INITIALIZATION
+# 2. BULLETPROOF HTML/SVG RENDERER (NO RAW CODE BLOCKS!)
+# -----------------------------------------------------------------------------
+def render_html(html_str: str):
+    """
+    Safely renders custom HTML/SVG without Markdown converting indented lines
+    into unwanted <pre><code> code blocks.
+    Removes HTML comments and strips leading whitespace from every line so
+    CommonMark never triggers indented code block formatting.
+    """
+    if not html_str:
+        return
+    # Remove HTML comments to eliminate any markdown comment parsing glitches
+    no_comments = re.sub(r'<!--.*?-->', '', html_str, flags=re.DOTALL)
+    # Strip leading spaces from each line so no line starts with 4+ spaces
+    cleaned = "\n".join(line.lstrip() for line in no_comments.strip().splitlines() if line.strip())
+    st.markdown(cleaned, unsafe_allow_html=True)
+
+
+# -----------------------------------------------------------------------------
+# 3. SESSION STATE INITIALIZATION
 # -----------------------------------------------------------------------------
 def initialize_state():
     """Initializes all state variables required for the romantic experience."""
@@ -82,7 +102,7 @@ def prev_stage():
 
 
 # -----------------------------------------------------------------------------
-# 3. HELPER FUNCTIONS: IMAGES & AUDIO
+# 4. HELPER FUNCTIONS: IMAGES & AUDIO
 # -----------------------------------------------------------------------------
 def find_photo_file(base_name: str) -> Path:
     """Finds photo whether saved as .jpg, .jpeg, .png, or .webp."""
@@ -139,539 +159,535 @@ def find_music_file():
 
 
 # -----------------------------------------------------------------------------
-# 4. CUSTOM CSS DESIGN SYSTEM & ANIMATIONS
+# 5. CUSTOM CSS DESIGN SYSTEM & ANIMATIONS
 # -----------------------------------------------------------------------------
 def inject_custom_css():
     """Injects high-end, handmade kawaii scrapbook styling and animations."""
-    st.markdown(
-        """
-        <style>
-        /* Google Fonts */
-        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Gaegu:wght@400;700&family=Nunito:wght@400;600;700;800&family=Sacramento&display=swap');
+    css = """
+    <style>
+    /* Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Gaegu:wght@400;700&family=Nunito:wght@400;600;700;800&family=Sacramento&display=swap');
 
-        /* ---------------- HIDE STREAMLIT CHROME ---------------- */
-        #MainMenu, header, footer, [data-testid="stToolbar"], [data-testid="stDecoration"], [data-testid="stStatusWidget"], .stDeployButton {
-            display: none !important;
-            visibility: hidden !important;
-        }
+    /* ---------------- HIDE STREAMLIT CHROME ---------------- */
+    #MainMenu, header, footer, [data-testid="stToolbar"], [data-testid="stDecoration"], [data-testid="stStatusWidget"], .stDeployButton {
+        display: none !important;
+        visibility: hidden !important;
+    }
 
-        /* ---------------- GLOBAL PAGE STYLING ---------------- */
-        .stApp {
-            background-color: #FAF4EB;
-            background-image: 
-                radial-gradient(#EADECF 1.5px, transparent 1.5px),
-                radial-gradient(#EADECF 1.5px, #FAF4EB 1.5px);
-            background-size: 30px 30px;
-            background-position: 0 0, 15px 15px;
-            font-family: 'Nunito', sans-serif;
-            color: #4A3525;
-            min-height: 100vh;
-        }
+    /* ---------------- PREVENT UNWANTED CODE BLOCKS ---------------- */
+    pre, code {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        color: inherit !important;
+        box-shadow: none !important;
+        white-space: normal !important;
+    }
 
-        .block-container {
-            max-width: 900px !important;
-            padding-top: 1.2rem !important;
-            padding-bottom: 3.5rem !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-            margin: 0 auto !important;
-        }
+    /* ---------------- GLOBAL PAGE STYLING ---------------- */
+    .stApp {
+        background-color: #FAF4EB;
+        background-image: 
+            radial-gradient(#EADECF 1.5px, transparent 1.5px),
+            radial-gradient(#EADECF 1.5px, #FAF4EB 1.5px);
+        background-size: 30px 30px;
+        background-position: 0 0, 15px 15px;
+        font-family: 'Nunito', sans-serif;
+        color: #4A3525;
+        min-height: 100vh;
+    }
 
-        /* ---------------- SCRAPBOOK CARD CONTAINER ---------------- */
-        .scrapbook-card {
-            background: #FFFDF9;
-            border-radius: 28px;
-            padding: 38px 30px;
-            margin: 20px auto;
-            box-shadow: 
-                0 16px 40px rgba(138, 88, 64, 0.09),
-                0 2px 10px rgba(0, 0, 0, 0.04);
-            border: 2px dashed #E5D0BE;
-            position: relative;
-            text-align: center;
-            overflow: visible;
-        }
+    .block-container {
+        max-width: 900px !important;
+        padding-top: 1.2rem !important;
+        padding-bottom: 3.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        margin: 0 auto !important;
+    }
 
-        /* Washi Tape Ribbon Effect */
-        .washi-tape {
-            position: absolute;
-            top: -14px;
-            left: 50%;
-            transform: translateX(-50%) rotate(-1.5deg);
-            background: rgba(246, 189, 96, 0.85);
-            width: 140px;
-            height: 28px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            border-left: 3px dashed rgba(255,255,255,0.7);
-            border-right: 3px dashed rgba(255,255,255,0.7);
-            z-index: 10;
-        }
-        
-        .washi-tape-pink {
-            background: rgba(247, 202, 208, 0.85) !important;
-            transform: translateX(-50%) rotate(1.2deg) !important;
-        }
+    /* ---------------- SCRAPBOOK CARD CONTAINER ---------------- */
+    .scrapbook-card {
+        background: #FFFDF9;
+        border-radius: 28px;
+        padding: 38px 30px;
+        margin: 20px auto;
+        box-shadow: 
+            0 16px 40px rgba(138, 88, 64, 0.09),
+            0 2px 10px rgba(0, 0, 0, 0.04);
+        border: 2px dashed #E5D0BE;
+        position: relative;
+        text-align: center;
+        overflow: visible;
+    }
 
-        .washi-tape-corner-left {
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            width: 90px;
-            height: 25px;
-            background: rgba(244, 162, 97, 0.8);
-            transform: rotate(-35deg);
-            z-index: 10;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-        }
+    /* Washi Tape Ribbon Effect */
+    .washi-tape {
+        position: absolute;
+        top: -14px;
+        left: 50%;
+        transform: translateX(-50%) rotate(-1.5deg);
+        background: rgba(246, 189, 96, 0.85);
+        width: 140px;
+        height: 28px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        border-left: 3px dashed rgba(255,255,255,0.7);
+        border-right: 3px dashed rgba(255,255,255,0.7);
+        z-index: 10;
+    }
+    
+    .washi-tape-pink {
+        background: rgba(247, 202, 208, 0.85) !important;
+        transform: translateX(-50%) rotate(1.2deg) !important;
+    }
 
-        .washi-tape-corner-right {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            width: 90px;
-            height: 25px;
-            background: rgba(247, 202, 208, 0.85);
-            transform: rotate(35deg);
-            z-index: 10;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-        }
+    .washi-tape-corner-left {
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        width: 90px;
+        height: 25px;
+        background: rgba(244, 162, 97, 0.8);
+        transform: rotate(-35deg);
+        z-index: 10;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
 
-        /* ---------------- TYPOGRAPHY ---------------- */
+    .washi-tape-corner-right {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 90px;
+        height: 25px;
+        background: rgba(247, 202, 208, 0.85);
+        transform: rotate(35deg);
+        z-index: 10;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
+
+    /* ---------------- TYPOGRAPHY ---------------- */
+    .handwritten-title {
+        font-family: 'Caveat', cursive;
+        font-size: 3.2rem;
+        font-weight: 700;
+        color: #E76F51;
+        line-height: 1.15;
+        margin-bottom: 0.2rem;
+        text-shadow: 2px 2px 0px #FFE5D9;
+    }
+
+    .handwritten-subtitle {
+        font-family: 'Patrick Hand', cursive;
+        font-size: 1.7rem;
+        color: #6E473B;
+        margin-top: 0.2rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .cute-tag {
+        font-family: 'Patrick Hand', cursive;
+        font-size: 1.15rem;
+        background: #FFE5D9;
+        color: #E76F51;
+        padding: 4px 14px;
+        border-radius: 16px;
+        display: inline-block;
+        margin: 4px;
+        border: 1px dashed #F4A261;
+        transform: rotate(-1.5deg);
+    }
+
+    .doodle-arrow {
+        font-family: 'Caveat', cursive;
+        font-size: 1.6rem;
+        color: #F4A261;
+        display: inline-block;
+    }
+
+    /* ---------------- BUTTON STYLING ---------------- */
+    div.stButton > button {
+        font-family: 'Patrick Hand', cursive !important;
+        font-size: 1.45rem !important;
+        font-weight: 600 !important;
+        padding: 12px 28px !important;
+        border-radius: 50px !important;
+        border: 2px solid #E76F51 !important;
+        background-color: #E76F51 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 8px 20px rgba(231, 111, 81, 0.3) !important;
+        transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        cursor: pointer !important;
+        width: auto !important;
+        min-height: 52px !important;
+        margin: 6px auto !important;
+        display: block !important;
+    }
+
+    div.stButton > button:hover {
+        transform: scale(1.05) translateY(-3px) !important;
+        background-color: #F4A261 !important;
+        border-color: #F4A261 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 12px 26px rgba(244, 162, 97, 0.4) !important;
+    }
+
+    div.stButton > button:active {
+        transform: scale(0.97) translateY(1px) !important;
+    }
+
+    /* Secondary soft button */
+    .btn-soft div.stButton > button {
+        background-color: #FFF2EB !important;
+        color: #E76F51 !important;
+        border: 2px dashed #E76F51 !important;
+        box-shadow: 0 4px 12px rgba(231, 111, 81, 0.15) !important;
+    }
+    .btn-soft div.stButton > button:hover {
+        background-color: #FFE5D9 !important;
+        color: #D95333 !important;
+    }
+
+    /* No button special styling */
+    .btn-no div.stButton > button {
+        background-color: #F7CAD0 !important;
+        border-color: #F8AD9D !important;
+        color: #6E473B !important;
+        box-shadow: 0 6px 16px rgba(247, 202, 208, 0.4) !important;
+    }
+
+    /* ---------------- POLAROID & SHAPED PHOTO STYLING ---------------- */
+    .polaroid-frame {
+        background: #FFFFFF;
+        padding: 14px 14px 24px 14px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0,0,0,0.04);
+        border-radius: 6px;
+        display: inline-block;
+        position: relative;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        max-width: 100%;
+        margin: 10px 4px;
+    }
+
+    .polaroid-frame:hover {
+        transform: scale(1.03) rotate(0deg) !important;
+        box-shadow: 0 16px 35px rgba(231, 111, 81, 0.2);
+        z-index: 15;
+    }
+
+    .polaroid-img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        border-radius: 4px;
+        display: block;
+    }
+
+    .polaroid-caption {
+        font-family: 'Caveat', cursive;
+        font-size: 1.55rem;
+        color: #5C4033;
+        margin-top: 12px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    /* Heart-shaped photo crop */
+    .photo-heart-wrapper {
+        background: #FFFDF9;
+        padding: 12px;
+        border-radius: 20px;
+        border: 2px dashed #F8AD9D;
+        box-shadow: 0 8px 22px rgba(231, 111, 81, 0.12);
+        display: inline-block;
+        width: 95%;
+        margin: 10px auto;
+    }
+
+    .photo-heart-img {
+        width: 190px;
+        height: 190px;
+        object-fit: cover;
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        border: 4px solid #FCD5CE;
+        display: block;
+        margin: 0 auto;
+        box-shadow: 0 6px 16px rgba(231, 111, 81, 0.18);
+    }
+
+    /* Circular portrait frame */
+    .photo-circle-wrapper {
+        background: #FFFFFF;
+        padding: 14px 14px 22px 14px;
+        border-radius: 24px;
+        border: 2px dashed #F4A261;
+        box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+        display: inline-block;
+        width: 95%;
+        margin: 10px auto;
+    }
+
+    .photo-circle-img {
+        width: 185px;
+        height: 185px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 5px solid #FFE5D9;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        display: block;
+        margin: 0 auto;
+    }
+
+    /* Rounded rectangle modern card */
+    .photo-rounded-wrapper {
+        background: #FFFFFF;
+        padding: 12px 12px 20px 12px;
+        border-radius: 22px;
+        border: 2px solid #EADECF;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.07);
+        display: inline-block;
+        width: 95%;
+        margin: 10px auto;
+    }
+
+    .photo-rounded-img {
+        width: 100%;
+        height: 200px;
+        border-radius: 16px;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* Postage Stamp Frame */
+    .photo-stamp-wrapper {
+        background: #FFFDF9;
+        padding: 12px 12px 22px 12px;
+        border: 3px dashed #E76F51;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(231, 111, 81, 0.12);
+        display: inline-block;
+        width: 95%;
+        margin: 10px auto;
+    }
+
+    /* ---------------- ANIMATIONS ---------------- */
+    @keyframes floatSlow {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(1deg); }
+    }
+
+    @keyframes gentlePulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    @keyframes heartBeat {
+        0% { transform: scale(1); }
+        14% { transform: scale(1.22); }
+        28% { transform: scale(1); }
+        42% { transform: scale(1.22); }
+        70% { transform: scale(1); }
+    }
+
+    @keyframes flameFlicker {
+        0%, 100% { transform: scale(1) rotate(-1deg); opacity: 0.95; }
+        50% { transform: scale(1.15) rotate(2deg); opacity: 1; filter: drop-shadow(0 0 12px #F6BD60); }
+    }
+
+    @keyframes smokePuff {
+        0% { transform: translateY(0) scale(0.6); opacity: 1; }
+        100% { transform: translateY(-35px) scale(1.6); opacity: 0; }
+    }
+
+    @keyframes stagedFadeIn {
+        0% { opacity: 0; transform: scale(0.9) translateY(12px); }
+        100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .hw-line1 {
+        animation: stagedFadeIn 0.9s ease-out forwards;
+    }
+    .hw-line2 {
+        animation: stagedFadeIn 0.9s ease-out 0.6s forwards;
+        opacity: 0;
+    }
+    .hw-line3 {
+        animation: stagedFadeIn 1.1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 1.2s forwards;
+        opacity: 0;
+    }
+
+    .anim-float {
+        animation: floatSlow 3.8s ease-in-out infinite;
+    }
+
+    .anim-pulse {
+        animation: gentlePulse 2.8s ease-in-out infinite;
+    }
+
+    .anim-heartbeat {
+        display: inline-block;
+        animation: heartBeat 1.8s ease-in-out infinite;
+    }
+
+    .flame-anim {
+        display: inline-block;
+        animation: flameFlicker 1.2s ease-in-out infinite;
+    }
+
+    .smoke-anim {
+        display: inline-block;
+        animation: smokePuff 1.8s ease-out forwards;
+    }
+
+    /* ---------------- FLOATING PASTEL HEARTS BACKGROUND ---------------- */
+    .floating-heart {
+        position: absolute;
+        color: #F8AD9D;
+        opacity: 0.65;
+        user-select: none;
+        pointer-events: none;
+        animation: floatSlow 4s ease-in-out infinite;
+    }
+
+    /* ---------------- SPEECH BUBBLE ---------------- */
+    .speech-bubble {
+        position: relative;
+        background: #FFE5D9;
+        border: 2px dashed #E76F51;
+        border-radius: 20px;
+        padding: 12px 20px;
+        font-family: 'Patrick Hand', cursive;
+        font-size: 1.4rem;
+        color: #8C533C;
+        display: inline-block;
+        margin: 12px auto;
+        box-shadow: 0 4px 12px rgba(231, 111, 81, 0.12);
+    }
+
+    .speech-bubble:after {
+        content: '';
+        position: absolute;
+        bottom: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 12px 10px 0;
+        border-style: solid;
+        border-color: #FFE5D9 transparent;
+        display: block;
+        width: 0;
+    }
+
+    /* ---------------- SCRAPBOOK LETTER CARD ---------------- */
+    .letter-paper {
+        background-color: #FFFDF9;
+        background-image: linear-gradient(#F0E5D8 1px, transparent 1px);
+        background-size: 100% 2.2rem;
+        line-height: 2.2rem;
+        padding: 30px 28px;
+        border-radius: 20px;
+        border: 1px solid #E8DACB;
+        font-family: 'Caveat', cursive;
+        font-size: 1.7rem;
+        color: #4A3525;
+        text-align: left;
+        box-shadow: inset 0 0 30px rgba(240, 229, 216, 0.4);
+    }
+
+    /* ---------------- PENGUIN SELECTION CARD ---------------- */
+    .penguin-card {
+        background: #FFFFFF;
+        border-radius: 24px;
+        padding: 20px 14px;
+        border: 2px dashed #F4A261;
+        box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        text-align: center;
+        cursor: pointer;
+        margin: 8px 0;
+    }
+
+    .penguin-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 14px 30px rgba(231, 111, 81, 0.22);
+        border-color: #E76F51;
+    }
+
+    /* ---------------- REASON HEART CARDS ---------------- */
+    .reason-box {
+        background: #FFFBF5;
+        border: 2px solid #FCD5CE;
+        border-radius: 20px;
+        padding: 18px 16px;
+        margin: 8px 0;
+        box-shadow: 0 4px 14px rgba(248, 173, 157, 0.15);
+        transition: all 0.25s ease;
+        font-family: 'Patrick Hand', cursive;
+        font-size: 1.35rem;
+        color: #6E473B;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .reason-box:hover {
+        transform: translateY(-4px);
+        border-color: #E76F51;
+        box-shadow: 0 8px 20px rgba(231, 111, 81, 0.2);
+    }
+
+    /* ---------------- FINAL GRAND HEADING ---------------- */
+    .grand-love {
+        font-family: 'Caveat', cursive;
+        font-size: 5.5rem;
+        font-weight: 700;
+        color: #E76F51;
+        line-height: 1.05;
+        text-shadow: 4px 4px 0px #FFE5D9, 7px 7px 0px rgba(244, 162, 97, 0.3);
+        margin: 15px 0;
+        letter-spacing: 2px;
+    }
+
+    /* Mobile responsiveness adjustments */
+    @media (max-width: 768px) {
         .handwritten-title {
-            font-family: 'Caveat', cursive;
-            font-size: 3.2rem;
-            font-weight: 700;
-            color: #E76F51;
-            line-height: 1.15;
-            margin-bottom: 0.2rem;
-            text-shadow: 2px 2px 0px #FFE5D9;
+            font-size: 2.3rem !important;
         }
-
         .handwritten-subtitle {
-            font-family: 'Patrick Hand', cursive;
-            font-size: 1.7rem;
-            color: #6E473B;
-            margin-top: 0.2rem;
-            margin-bottom: 1.2rem;
+            font-size: 1.35rem !important;
         }
-
-        .cute-tag {
-            font-family: 'Patrick Hand', cursive;
-            font-size: 1.15rem;
-            background: #FFE5D9;
-            color: #E76F51;
-            padding: 4px 14px;
-            border-radius: 16px;
-            display: inline-block;
-            margin: 4px;
-            border: 1px dashed #F4A261;
-            transform: rotate(-1.5deg);
-        }
-
-        .doodle-arrow {
-            font-family: 'Caveat', cursive;
-            font-size: 1.6rem;
-            color: #F4A261;
-            display: inline-block;
-        }
-
-        /* ---------------- BUTTON STYLING ---------------- */
-        div.stButton > button {
-            font-family: 'Patrick Hand', cursive !important;
-            font-size: 1.45rem !important;
-            font-weight: 600 !important;
-            padding: 12px 28px !important;
-            border-radius: 50px !important;
-            border: 2px solid #E76F51 !important;
-            background-color: #E76F51 !important;
-            color: #FFFFFF !important;
-            box-shadow: 0 8px 20px rgba(231, 111, 81, 0.3) !important;
-            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-            cursor: pointer !important;
-            width: auto !important;
-            min-height: 52px !important;
-            margin: 6px auto !important;
-            display: block !important;
-        }
-
-        div.stButton > button:hover {
-            transform: scale(1.05) translateY(-3px) !important;
-            background-color: #F4A261 !important;
-            border-color: #F4A261 !important;
-            color: #FFFFFF !important;
-            box-shadow: 0 12px 26px rgba(244, 162, 97, 0.4) !important;
-        }
-
-        div.stButton > button:active {
-            transform: scale(0.97) translateY(1px) !important;
-        }
-
-        /* Secondary soft button */
-        .btn-soft div.stButton > button {
-            background-color: #FFF2EB !important;
-            color: #E76F51 !important;
-            border: 2px dashed #E76F51 !important;
-            box-shadow: 0 4px 12px rgba(231, 111, 81, 0.15) !important;
-        }
-        .btn-soft div.stButton > button:hover {
-            background-color: #FFE5D9 !important;
-            color: #D95333 !important;
-        }
-
-        /* No button special styling */
-        .btn-no div.stButton > button {
-            background-color: #F7CAD0 !important;
-            border-color: #F8AD9D !important;
-            color: #6E473B !important;
-            box-shadow: 0 6px 16px rgba(247, 202, 208, 0.4) !important;
-        }
-
-        /* ---------------- POLAROID & SHAPED PHOTO STYLING ---------------- */
-        .polaroid-frame {
-            background: #FFFFFF;
-            padding: 14px 14px 24px 14px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0,0,0,0.04);
-            border-radius: 6px;
-            display: inline-block;
-            position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            max-width: 100%;
-            margin: 10px 4px;
-        }
-
-        .polaroid-frame:hover {
-            transform: scale(1.03) rotate(0deg) !important;
-            box-shadow: 0 16px 35px rgba(231, 111, 81, 0.2);
-            z-index: 15;
-        }
-
-        .polaroid-img {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            border-radius: 4px;
-            display: block;
-        }
-
-        .polaroid-caption {
-            font-family: 'Caveat', cursive;
-            font-size: 1.55rem;
-            color: #5C4033;
-            margin-top: 12px;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        /* Heart-shaped photo crop */
-        .photo-heart-wrapper {
-            background: #FFFDF9;
-            padding: 12px;
-            border-radius: 20px;
-            border: 2px dashed #F8AD9D;
-            box-shadow: 0 8px 22px rgba(231, 111, 81, 0.12);
-            display: inline-block;
-            width: 95%;
-            margin: 10px auto;
-        }
-
-        .photo-heart-img {
-            width: 190px;
-            height: 190px;
-            object-fit: cover;
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            border: 4px solid #FCD5CE;
-            display: block;
-            margin: 0 auto;
-            box-shadow: 0 6px 16px rgba(231, 111, 81, 0.18);
-        }
-
-        /* Circular portrait frame */
-        .photo-circle-wrapper {
-            background: #FFFFFF;
-            padding: 14px 14px 22px 14px;
-            border-radius: 24px;
-            border: 2px dashed #F4A261;
-            box-shadow: 0 8px 22px rgba(0,0,0,0.06);
-            display: inline-block;
-            width: 95%;
-            margin: 10px auto;
-        }
-
-        .photo-circle-img {
-            width: 185px;
-            height: 185px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 5px solid #FFE5D9;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-            display: block;
-            margin: 0 auto;
-        }
-
-        /* Rounded rectangle modern card */
-        .photo-rounded-wrapper {
-            background: #FFFFFF;
-            padding: 12px 12px 20px 12px;
-            border-radius: 22px;
-            border: 2px solid #EADECF;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.07);
-            display: inline-block;
-            width: 95%;
-            margin: 10px auto;
-        }
-
-        .photo-rounded-img {
-            width: 100%;
-            height: 200px;
-            border-radius: 16px;
-            object-fit: cover;
-            display: block;
-        }
-
-        /* Postage Stamp Frame */
-        .photo-stamp-wrapper {
-            background: #FFFDF9;
-            padding: 12px 12px 22px 12px;
-            border: 3px dashed #E76F51;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(231, 111, 81, 0.12);
-            display: inline-block;
-            width: 95%;
-            margin: 10px auto;
-        }
-
-        /* ---------------- ANIMATIONS ---------------- */
-        @keyframes floatSlow {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(1deg); }
-        }
-
-        @keyframes gentlePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes heartBeat {
-            0% { transform: scale(1); }
-            14% { transform: scale(1.22); }
-            28% { transform: scale(1); }
-            42% { transform: scale(1.22); }
-            70% { transform: scale(1); }
-        }
-
-        @keyframes flameFlicker {
-            0%, 100% { transform: scale(1) rotate(-1deg); opacity: 0.95; }
-            50% { transform: scale(1.15) rotate(2deg); opacity: 1; filter: drop-shadow(0 0 12px #F6BD60); }
-        }
-
-        @keyframes smokePuff {
-            0% { transform: translateY(0) scale(0.6); opacity: 1; }
-            100% { transform: translateY(-35px) scale(1.6); opacity: 0; }
-        }
-
-        @keyframes stagedFadeIn {
-            0% { opacity: 0; transform: scale(0.9) translateY(12px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .hw-line1 {
-            animation: stagedFadeIn 0.9s ease-out forwards;
-        }
-        .hw-line2 {
-            animation: stagedFadeIn 0.9s ease-out 0.6s forwards;
-            opacity: 0;
-        }
-        .hw-line3 {
-            animation: stagedFadeIn 1.1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 1.2s forwards;
-            opacity: 0;
-        }
-
-        .anim-float {
-            animation: floatSlow 3.8s ease-in-out infinite;
-        }
-
-        .anim-pulse {
-            animation: gentlePulse 2.8s ease-in-out infinite;
-        }
-
-        .anim-heartbeat {
-            display: inline-block;
-            animation: heartBeat 1.8s ease-in-out infinite;
-        }
-
-        .flame-anim {
-            display: inline-block;
-            animation: flameFlicker 1.2s ease-in-out infinite;
-        }
-
-        .smoke-anim {
-            display: inline-block;
-            animation: smokePuff 1.8s ease-out forwards;
-        }
-
-        /* ---------------- FLOATING PASTEL HEARTS BACKGROUND ---------------- */
-        .floating-heart {
-            position: absolute;
-            color: #F8AD9D;
-            opacity: 0.65;
-            user-select: none;
-            pointer-events: none;
-            animation: floatSlow 4s ease-in-out infinite;
-        }
-
-        /* ---------------- SPEECH BUBBLE ---------------- */
-        .speech-bubble {
-            position: relative;
-            background: #FFE5D9;
-            border: 2px dashed #E76F51;
-            border-radius: 20px;
-            padding: 12px 20px;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 1.4rem;
-            color: #8C533C;
-            display: inline-block;
-            margin: 12px auto;
-            box-shadow: 0 4px 12px rgba(231, 111, 81, 0.12);
-        }
-
-        .speech-bubble:after {
-            content: '';
-            position: absolute;
-            bottom: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 12px 10px 0;
-            border-style: solid;
-            border-color: #FFE5D9 transparent;
-            display: block;
-            width: 0;
-        }
-
-        /* ---------------- SCRAPBOOK LETTER CARD ---------------- */
-        .letter-paper {
-            background-color: #FFFDF9;
-            background-image: linear-gradient(#F0E5D8 1px, transparent 1px);
-            background-size: 100% 2.2rem;
-            line-height: 2.2rem;
-            padding: 30px 28px;
-            border-radius: 20px;
-            border: 1px solid #E8DACB;
-            font-family: 'Caveat', cursive;
-            font-size: 1.7rem;
-            color: #4A3525;
-            text-align: left;
-            box-shadow: inset 0 0 30px rgba(240, 229, 216, 0.4);
-        }
-
-        /* ---------------- PENGUIN SELECTION CARD ---------------- */
-        .penguin-card {
-            background: #FFFFFF;
-            border-radius: 24px;
-            padding: 20px 14px;
-            border: 2px dashed #F4A261;
-            box-shadow: 0 8px 22px rgba(0,0,0,0.06);
-            transition: all 0.3s ease;
-            text-align: center;
-            cursor: pointer;
-            margin: 8px 0;
-        }
-
-        .penguin-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 14px 30px rgba(231, 111, 81, 0.22);
-            border-color: #E76F51;
-        }
-
-        /* ---------------- REASON HEART CARDS ---------------- */
-        .reason-box {
-            background: #FFFBF5;
-            border: 2px solid #FCD5CE;
-            border-radius: 20px;
-            padding: 18px 16px;
-            margin: 8px 0;
-            box-shadow: 0 4px 14px rgba(248, 173, 157, 0.15);
-            transition: all 0.25s ease;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 1.35rem;
-            color: #6E473B;
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .reason-box:hover {
-            transform: translateY(-4px);
-            border-color: #E76F51;
-            box-shadow: 0 8px 20px rgba(231, 111, 81, 0.2);
-        }
-
-        /* ---------------- FINAL GRAND HEADING ---------------- */
         .grand-love {
-            font-family: 'Caveat', cursive;
-            font-size: 5.5rem;
-            font-weight: 700;
-            color: #E76F51;
-            line-height: 1.05;
-            text-shadow: 4px 4px 0px #FFE5D9, 7px 7px 0px rgba(244, 162, 97, 0.3);
-            margin: 15px 0;
-            letter-spacing: 2px;
+            font-size: 3.6rem !important;
         }
-
-        /* ---------------- TOP MINI MUSIC BAR ---------------- */
-        .top-music-bar {
-            background: #FFF9F2;
-            border: 1px dashed #F4A261;
-            border-radius: 20px;
-            padding: 6px 16px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 1.1rem;
-            color: #8C533C;
+        .scrapbook-card {
+            padding: 26px 16px !important;
+            border-radius: 20px !important;
         }
-
-        /* Mobile responsiveness adjustments */
-        @media (max-width: 768px) {
-            .handwritten-title {
-                font-size: 2.3rem !important;
-            }
-            .handwritten-subtitle {
-                font-size: 1.35rem !important;
-            }
-            .grand-love {
-                font-size: 3.6rem !important;
-            }
-            .scrapbook-card {
-                padding: 26px 16px !important;
-                border-radius: 20px !important;
-            }
-            .letter-paper {
-                font-size: 1.45rem !important;
-                line-height: 2.0rem !important;
-                background-size: 100% 2.0rem !important;
-                padding: 20px 14px !important;
-            }
-            div.stButton > button {
-                font-size: 1.25rem !important;
-                padding: 10px 20px !important;
-                width: 100% !important;
-            }
-            .polaroid-img {
-                height: 190px !important;
-            }
+        .letter-paper {
+            font-size: 1.45rem !important;
+            line-height: 2.0rem !important;
+            background-size: 100% 2.0rem !important;
+            padding: 20px 14px !important;
         }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+        div.stButton > button {
+            font-size: 1.25rem !important;
+            padding: 10px 20px !important;
+            width: 100% !important;
+        }
+        .polaroid-img {
+            height: 190px !important;
+        }
+    }
+    </style>
+    """
+    render_html(css)
 
 
 # -----------------------------------------------------------------------------
-# 5. CUTE SVG ARTWORK & GRAPHIC ASSET HELPERS
+# 6. CUTE SVG ARTWORK & GRAPHIC ASSET HELPERS
 # -----------------------------------------------------------------------------
 def render_kawaii_penguin_svg(accessory="gift", size=220):
     """
@@ -680,49 +696,41 @@ def render_kawaii_penguin_svg(accessory="gift", size=220):
     """
     acc_svg = ""
     if accessory == "gift":
-        acc_svg = f"""
-        <!-- Pink Gift Box -->
+        acc_svg = """
         <rect x="75" y="130" width="50" height="42" rx="6" fill="#F7CAD0" stroke="#E76F51" stroke-width="2"/>
         <rect x="70" y="122" width="60" height="12" rx="4" fill="#FFB5A7" stroke="#E76F51" stroke-width="2"/>
         <rect x="96" y="122" width="8" height="50" fill="#E76F51"/>
         <rect x="75" y="146" width="50" height="8" fill="#E76F51"/>
-        <!-- Ribbon Bow -->
         <ellipse cx="88" cy="116" rx="10" ry="7" fill="#E76F51"/>
         <ellipse cx="112" cy="116" rx="10" ry="7" fill="#E76F51"/>
         <circle cx="100" cy="117" r="4" fill="#F6BD60"/>
         """
     elif accessory == "letter":
-        acc_svg = f"""
-        <!-- Love Letter Envelope -->
+        acc_svg = """
         <rect x="72" y="130" width="56" height="38" rx="4" fill="#FFE5D9" stroke="#E76F51" stroke-width="2"/>
         <path d="M72 130 L100 150 L128 130" fill="none" stroke="#E76F51" stroke-width="2"/>
         <path d="M100 148 C97 144 91 144 91 150 C91 156 100 162 100 162 C100 162 109 156 109 150 C109 144 103 144 100 148 Z" fill="#E76F51"/>
-        <!-- Birthday Party Hat -->
         <polygon points="85,55 115,55 100,20" fill="#F4A261" stroke="#E76F51" stroke-width="2"/>
         <circle cx="100" cy="16" r="6" fill="#E76F51"/>
         """
     elif accessory == "cake":
-        acc_svg = f"""
-        <!-- Mini Birthday Cake -->
+        acc_svg = """
         <rect x="74" y="140" width="52" height="30" rx="6" fill="#FCD5CE" stroke="#E76F51" stroke-width="2"/>
         <path d="M74 140 Q80 148 87 140 Q94 148 100 140 Q107 148 114 140 Q121 148 126 140" fill="#FFF0F3" stroke="#FFF0F3"/>
         <rect x="98" y="124" width="4" height="16" fill="#FDE4CF" stroke="#E76F51" stroke-width="1.5"/>
         <ellipse cx="100" cy="118" rx="4" ry="7" fill="#F6BD60" class="flame-anim"/>
         """
     elif accessory == "heart":
-        acc_svg = f"""
-        <!-- Glowing Beating Heart -->
+        acc_svg = """
         <g class="anim-heartbeat" style="transform-origin: 100px 145px;">
             <path d="M100 135 C94 125 80 125 80 138 C80 152 100 166 100 166 C100 166 120 152 120 138 C120 125 106 125 100 135 Z" fill="#E76F51"/>
             <circle cx="90" cy="133" r="3" fill="#FFFFFF" opacity="0.8"/>
         </g>
         """
     elif accessory == "celebrate":
-        acc_svg = f"""
-        <!-- Celebration sparkles & open gift -->
+        acc_svg = """
         <polygon points="85,50 115,50 100,15" fill="#E76F51" stroke="#F4A261" stroke-width="2"/>
         <circle cx="100" cy="11" r="5" fill="#F6BD60"/>
-        <!-- Heart burst -->
         <path d="M100 130 C94 120 82 120 82 132 C82 144 100 156 100 156 C100 156 118 144 118 132 C118 120 106 120 100 130 Z" fill="#E76F51" class="anim-pulse"/>
         <circle cx="60" cy="85" r="4" fill="#F6BD60"/>
         <circle cx="140" cy="85" r="4" fill="#F8AD9D"/>
@@ -730,33 +738,25 @@ def render_kawaii_penguin_svg(accessory="gift", size=220):
 
     svg = f"""
     <svg width="{size}" height="{size}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; filter: drop-shadow(0 6px 12px rgba(138, 88, 64, 0.15));">
-        <!-- Feet -->
         <ellipse cx="80" cy="180" rx="16" ry="9" fill="#F4A261"/>
         <ellipse cx="120" cy="180" rx="16" ry="9" fill="#F4A261"/>
-        <!-- Outer Body -->
         <ellipse cx="100" cy="115" rx="55" ry="65" fill="#3D405B"/>
-        <!-- Flippers/Wings -->
         <ellipse cx="44" cy="120" rx="12" ry="26" fill="#3D405B" transform="rotate(20 44 120)"/>
         <ellipse cx="156" cy="120" rx="12" ry="26" fill="#3D405B" transform="rotate(-20 156 120)"/>
-        <!-- Tummy -->
         <ellipse cx="100" cy="120" rx="40" ry="52" fill="#FFFDF8"/>
-        <!-- Kawaii Eyes -->
         <circle cx="84" cy="95" r="5.5" fill="#264653"/>
         <circle cx="82.5" cy="93" r="2" fill="#FFFFFF"/>
         <circle cx="86" cy="97" r="1" fill="#FFFFFF"/>
         <circle cx="116" cy="95" r="5.5" fill="#264653"/>
         <circle cx="114.5" cy="93" r="2" fill="#FFFFFF"/>
         <circle cx="118" cy="97" r="1" fill="#FFFFFF"/>
-        <!-- Rosy Blushing Cheeks -->
         <ellipse cx="74" cy="106" rx="8" ry="5" fill="#F8AD9D" opacity="0.85"/>
         <ellipse cx="126" cy="106" rx="8" ry="5" fill="#F8AD9D" opacity="0.85"/>
-        <!-- Beak -->
         <polygon points="100,100 93,109 107,109" fill="#E76F51"/>
-        <!-- Accessory -->
         {acc_svg}
     </svg>
     """
-    return svg
+    return "\n".join(line.lstrip() for line in svg.strip().splitlines())
 
 def render_birthday_cake_svg(wish_made=False, size=240):
     """
@@ -764,13 +764,11 @@ def render_birthday_cake_svg(wish_made=False, size=240):
     with animated flickering flame or smoke puff when wish is made.
     """
     candle_effect = """
-    <!-- Flickering Flame -->
     <ellipse cx="100" cy="46" rx="6" ry="11" fill="#F6BD60" class="flame-anim"/>
     <ellipse cx="100" cy="48" rx="3" ry="7" fill="#E76F51" class="flame-anim"/>
     """
     if wish_made:
         candle_effect = """
-        <!-- Wish Made Smoke Puff -->
         <g class="smoke-anim">
             <circle cx="100" cy="42" r="7" fill="#D3D3D3" opacity="0.7"/>
             <circle cx="95" cy="32" r="5" fill="#E0E0E0" opacity="0.6"/>
@@ -781,35 +779,28 @@ def render_birthday_cake_svg(wish_made=False, size=240):
 
     svg = f"""
     <svg width="{size}" height="{size}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; filter: drop-shadow(0 8px 16px rgba(138, 88, 64, 0.14));">
-        <!-- Stand Plate -->
         <ellipse cx="100" cy="170" rx="80" ry="14" fill="#F0E5D8"/>
         <ellipse cx="100" cy="167" rx="74" ry="11" fill="#FFFFFF"/>
-        <!-- Bottom Cake Layer -->
         <rect x="45" y="115" width="110" height="48" rx="10" fill="#FCD5CE" stroke="#E76F51" stroke-width="2"/>
-        <!-- Icing drips bottom -->
         <path d="M45 125 Q52 135 60 125 Q68 135 76 125 Q84 135 92 125 Q100 135 108 125 Q116 135 124 125 Q132 135 140 125 Q148 135 155 125" fill="#FFF0F3" stroke="#FFF0F3" stroke-width="6"/>
         <rect x="46" y="116" width="108" height="12" fill="#FFF0F3"/>
-        <!-- Top Cake Layer -->
         <rect x="65" y="75" width="70" height="42" rx="8" fill="#FFE5D9" stroke="#E76F51" stroke-width="2"/>
         <path d="M65 83 Q72 90 79 83 Q86 90 93 83 Q100 90 107 83 Q114 90 121 83 Q128 90 135 83" fill="#FFF0F3" stroke="#FFF0F3" stroke-width="5"/>
         <rect x="66" y="76" width="68" height="8" fill="#FFF0F3"/>
-        <!-- Sprinkles & Heart -->
         <circle cx="62" cy="144" r="2.5" fill="#E76F51"/>
         <circle cx="85" cy="150" r="2.5" fill="#F6BD60"/>
         <circle cx="115" cy="142" r="2.5" fill="#F4A261"/>
         <circle cx="138" cy="148" r="2.5" fill="#F8AD9D"/>
-        <!-- Heart on cake -->
         <path d="M100 92 C96 87 88 87 88 94 C88 101 100 108 100 108 C100 108 112 101 112 94 C112 87 104 87 100 92 Z" fill="#E76F51"/>
-        <!-- Candle -->
         <rect x="97.5" y="52" width="5" height="24" rx="2" fill="#FDE4CF" stroke="#E76F51" stroke-width="1.2"/>
         <line x1="100" y1="50" x2="100" y2="52" stroke="#264653" stroke-width="1.5"/>
         {candle_effect}
     </svg>
     """
-    return svg
+    return "\n".join(line.lstrip() for line in svg.strip().splitlines())
 
 def render_top_navigation():
-    """Renders scrapbook chapter progress, back button, and optional top music bar."""
+    """Renders scrapbook chapter progress and back button."""
     if st.session_state.stage > 0:
         c1, c2, c3 = st.columns([1.2, 3.6, 1.2])
         with c1:
@@ -825,18 +816,18 @@ def render_top_navigation():
                 </span>
             </div>
             """
-            st.markdown(dots_html, unsafe_allow_html=True)
+            render_html(dots_html)
         with c3:
             pass
 
 
 # -----------------------------------------------------------------------------
-# 6. SCENE 1: "PLS ACCEPT THE GIFT"
+# 7. SCENE 1: "PLS ACCEPT THE GIFT"
 # -----------------------------------------------------------------------------
 def scene_accept_gift():
     """Scene 1: Shy penguin with YES and playful NO buttons, and celebratory acceptance."""
     # Floating background hearts
-    st.markdown(
+    render_html(
         """
         <div style="text-align: center; position: relative;">
             <span class="floating-heart" style="top:-10px; left:12%; font-size:24px;">🌸</span>
@@ -844,42 +835,37 @@ def scene_accept_gift():
             <span class="floating-heart" style="top:110px; left:8%; font-size:20px; animation-delay:2s;">✨</span>
             <span class="floating-heart" style="top:120px; right:10%; font-size:22px; animation-delay:1.5s;">💕</span>
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     if not st.session_state.gift_accepted:
-        # Initial Asking State
-        st.markdown(
+        render_html(
             """
             <div class="scrapbook-card">
                 <div class="washi-tape washi-tape-pink"></div>
                 <div class="handwritten-title">PLS ACCEPT THE GIFT 🎁</div>
                 <div class="handwritten-subtitle">A little surprise made with love for my Sona ❤️</div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
         # Shy Penguin Graphic
         p1_img_path = IMAGES_DIR / "penguin1.png"
         p1_b64 = get_image_base64(p1_img_path)
         if p1_b64:
-            st.markdown(
+            render_html(
                 f"""
                 <div class="anim-float" style="text-align:center; margin: 15px 0;">
                     <img src="{p1_b64}" width="210" style="filter: drop-shadow(0 8px 16px rgba(138,88,64,0.15));" alt="Cute Shy Penguin"/>
                 </div>
-                """,
-                unsafe_allow_html=True
+                """
             )
         else:
-            st.markdown(
+            render_html(
                 f"""
                 <div class="anim-float" style="text-align:center; margin: 15px 0;">
                     {render_kawaii_penguin_svg(accessory="gift", size=210)}
                 </div>
-                """,
-                unsafe_allow_html=True
+                """
             )
 
         # Playful Speech Bubble based on NO button clicks
@@ -893,7 +879,7 @@ def scene_accept_gift():
         ]
         current_msg = no_messages[min(st.session_state.no_clicks, len(no_messages) - 1)]
 
-        st.markdown(
+        render_html(
             f"""
             <div style="text-align:center;">
                 <div class="speech-bubble anim-pulse">
@@ -901,8 +887,7 @@ def scene_accept_gift():
                 </div>
             </div>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
         # Interactive Buttons
@@ -916,7 +901,7 @@ def scene_accept_gift():
                 st.rerun()
 
         with btn_col2:
-            st.markdown('<div class="btn-no">', unsafe_allow_html=True)
+            render_html('<div class="btn-no">')
             no_label = "NO 😤"
             if st.session_state.no_clicks == 1:
                 no_label = "Still NO? 🥺"
@@ -926,11 +911,11 @@ def scene_accept_gift():
             if st.button(no_label, key="no_button"):
                 st.session_state.no_clicks += 1
                 st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+            render_html('</div>')
 
     else:
         # Celebratory Acceptance Reveal State!
-        st.markdown(
+        render_html(
             """
             <div class="scrapbook-card anim-pulse">
                 <div class="washi-tape washi-tape-pink"></div>
@@ -940,11 +925,10 @@ def scene_accept_gift():
                 <div class="handwritten-subtitle" style="font-size: 2rem; color: #5C4033; font-weight: 700;">
                     I knew my Sona would accept it!
                 </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
-        st.markdown(
+        render_html(
             f"""
             <div style="text-align:center; margin: 15px 0;">
                 {render_kawaii_penguin_svg(accessory="celebrate", size=220)}
@@ -953,8 +937,7 @@ def scene_accept_gift():
                 <span class="cute-tag">✨ Sona accepted the birthday gift! ✨</span>
             </div>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
         col_c1, col_c2, col_c3 = st.columns([1, 2, 1])
@@ -964,11 +947,11 @@ def scene_accept_gift():
 
 
 # -----------------------------------------------------------------------------
-# 7. SCENE 2: "HAPPY BIRTHDAY REVEAL & MAKE A WISH"
+# 8. SCENE 2: "HAPPY BIRTHDAY REVEAL & MAKE A WISH"
 # -----------------------------------------------------------------------------
 def scene_birthday_reveal():
     """Scene 2: Cake reveal, animated flame, and Make A Wish interaction."""
-    st.markdown(
+    render_html(
         """
         <div class="scrapbook-card">
             <div class="washi-tape"></div>
@@ -977,23 +960,21 @@ def scene_birthday_reveal():
             <div class="handwritten-subtitle" style="font-size: 2.2rem; color: #E76F51; font-weight: 700;">
                 MY SONA ❤️
             </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     # Cake illustration with flickering flame or smoke puff
-    st.markdown(
+    render_html(
         f"""
         <div style="text-align:center; margin: 15px 0;">
             {render_birthday_cake_svg(wish_made=st.session_state.wish_made, size=230)}
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     # Make a wish interactive sequence
     if not st.session_state.wish_made:
-        st.markdown(
+        render_html(
             """
             <div style="text-align:center; margin: 15px auto;">
                 <div class="handwritten-subtitle" style="margin-bottom: 4px; font-weight: 700;">
@@ -1006,8 +987,7 @@ def scene_birthday_reveal():
                     "Make the most beautiful wish in your heart."
                 </p>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
         col_w1, col_w2, col_w3 = st.columns([1, 2, 1])
@@ -1017,7 +997,7 @@ def scene_birthday_reveal():
                 st.balloons()
                 st.rerun()
     else:
-        st.markdown(
+        render_html(
             """
             <div style="text-align:center; margin: 15px auto;" class="anim-pulse">
                 <div class="speech-bubble" style="background:#FFF9F2; border-color:#E76F51;">
@@ -1029,8 +1009,7 @@ def scene_birthday_reveal():
                     </p>
                 </div>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
         col_next1, col_next2, col_next3 = st.columns([1, 2, 1])
@@ -1038,15 +1017,15 @@ def scene_birthday_reveal():
             if st.button("Open your birthday letter 💌", key="open_letter_btn"):
                 next_stage()
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    render_html("</div>")
 
 
 # -----------------------------------------------------------------------------
-# 8. SCENE 3: "PERSONAL BIRTHDAY LETTER"
+# 9. SCENE 3: "PERSONAL BIRTHDAY LETTER"
 # -----------------------------------------------------------------------------
 def scene_birthday_letter():
     """Scene 3: Large scrapbook paper card with cutie polaroid on left & heartfelt letter."""
-    st.markdown(
+    render_html(
         """
         <div class="scrapbook-card">
             <div class="washi-tape washi-tape-pink"></div>
@@ -1054,8 +1033,7 @@ def scene_birthday_letter():
             <div class="washi-tape-corner-right"></div>
             <div class="handwritten-title">A LETTER FOR YOU 💌</div>
             <div class="handwritten-subtitle">Every word written straight from my heart...</div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     col_photo, col_letter = st.columns([1, 1.35])
@@ -1065,7 +1043,7 @@ def scene_birthday_letter():
         p1_b64 = get_image_base64(p1_path)
 
         if p1_b64:
-            st.markdown(
+            render_html(
                 f"""
                 <div style="text-align:center;">
                     <div class="polaroid-frame" style="transform: rotate(-2.5deg);">
@@ -1081,11 +1059,10 @@ def scene_birthday_letter():
                         <span class="cute-tag">mine ❤️</span>
                     </div>
                 </div>
-                """,
-                unsafe_allow_html=True
+                """
             )
         else:
-            st.markdown(
+            render_html(
                 f"""
                 <div style="text-align:center;">
                     <div class="polaroid-frame" style="transform: rotate(-2.5deg);">
@@ -1103,12 +1080,11 @@ def scene_birthday_letter():
                         <span class="cute-tag">mine ❤️</span>
                     </div>
                 </div>
-                """,
-                unsafe_allow_html=True
+                """
             )
 
     with col_letter:
-        st.markdown(
+        render_html(
             """
             <div class="letter-paper">
                 <div style="font-weight:700; font-size:2.0rem; color:#E76F51; margin-bottom:10px;">
@@ -1144,11 +1120,10 @@ def scene_birthday_letter():
                     Always keep smiling, Amar Paakhi. ❤️
                 </p>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    render_html("</div>")
 
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
     with col_btn2:
@@ -1157,11 +1132,11 @@ def scene_birthday_letter():
 
 
 # -----------------------------------------------------------------------------
-# 9. SCENE 4: "PHOTO MEMORY SCRAPBOOK" (DIFFERENT SHAPES & STYLES)
+# 10. SCENE 4: "PHOTO MEMORY SCRAPBOOK" (DIFFERENT SHAPES & STYLES)
 # -----------------------------------------------------------------------------
 def scene_photo_scrapbook():
     """Scene 4: Scrapbook collage with different photo shapes (heart, polaroid, circle, rounded, stamp)."""
-    st.markdown(
+    render_html(
         """
         <div class="scrapbook-card">
             <div class="washi-tape"></div>
@@ -1173,8 +1148,7 @@ def scene_photo_scrapbook():
                 "Every picture tells a story, but my favorite ones are with you."
             </p>
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     photo_configs = [
@@ -1195,7 +1169,6 @@ def scene_photo_scrapbook():
             p_file = find_photo_file(cfg["base"])
             p_b64 = get_image_base64(p_file)
 
-            # Different scrapbook photo shapes!
             if cfg["shape"] == "heart":
                 img_content = f"""
                 <div class="photo-heart-wrapper" style="transform: rotate({cfg['tilt']});">
@@ -1267,7 +1240,6 @@ def scene_photo_scrapbook():
                 """
 
             else:
-                # Classic polaroid
                 img_content = f"""
                 <div class="polaroid-frame" style="transform: rotate({cfg['tilt']}); width: 92%;">
                     <div class="washi-tape {cfg['tape']}" style="top:-8px; width:75px; height:18px;"></div>
@@ -1285,22 +1257,20 @@ def scene_photo_scrapbook():
                 </div>
                 """
 
-            st.markdown(
+            render_html(
                 f"""
                 <div style="text-align:center; margin-bottom: 24px;">
                     {img_content}
                 </div>
-                """,
-                unsafe_allow_html=True
+                """
             )
 
-    st.markdown(
+    render_html(
         """
         <div style="text-align:center; margin: 15px 0;">
             <span class="doodle-arrow">✨ You make every memory look like art ✨</span>
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
@@ -1310,7 +1280,7 @@ def scene_photo_scrapbook():
 
 
 # -----------------------------------------------------------------------------
-# 10. SCENE 5: "OUR LITTLE MEMORIES"
+# 11. SCENE 5: "OUR LITTLE MEMORIES"
 # -----------------------------------------------------------------------------
 def scene_little_memories():
     """Scene 5: Clickable scrapbook cards revealing treasured memories one by one."""
@@ -1324,27 +1294,25 @@ def scene_little_memories():
         ("Every small memory with you 🌸", "Every quiet walk, every gentle glance, every warm hug, and every tiny moment that became unforgettable simply because it was with you, Amar Paakhi.")
     ]
 
-    st.markdown(
+    render_html(
         """
         <div class="scrapbook-card">
             <div class="washi-tape washi-tape-pink"></div>
             <div class="handwritten-title">Some little things I never want to forget ❤️</div>
             <div class="handwritten-subtitle">Click on each memory note to open what I keep in my heart...</div>
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     unlocked_count = len(st.session_state.opened_memories)
-    st.markdown(
+    render_html(
         f"""
         <div style="text-align:center; margin-bottom: 20px;">
             <span class="cute-tag" style="font-size: 1.25rem;">
                 💌 {unlocked_count} of {len(memories)} memories unlocked
             </span>
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     for idx, (title, detail) in enumerate(memories):
@@ -1353,7 +1321,7 @@ def scene_little_memories():
         card_col1, card_col2 = st.columns([3, 1])
         with card_col1:
             if is_opened:
-                st.markdown(
+                render_html(
                     f"""
                     <div style="background:#FFF9F2; border:2px dashed #E76F51; border-radius:18px; padding:16px 20px; margin-bottom:12px; box-shadow:0 4px 12px rgba(231,111,81,0.12);">
                         <div style="font-family:'Caveat', cursive; font-size:1.6rem; font-weight:700; color:#E76F51;">
@@ -1363,19 +1331,17 @@ def scene_little_memories():
                             "{detail}"
                         </div>
                     </div>
-                    """,
-                    unsafe_allow_html=True
+                    """
                 )
             else:
-                st.markdown(
+                render_html(
                     f"""
                     <div style="background:#FFFDF8; border:1px solid #E8D5C4; border-radius:18px; padding:16px 20px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
                         <div style="font-family:'Patrick Hand', cursive; font-size:1.4rem; color:#6E473B;">
                             🔒 {title}
                         </div>
                     </div>
-                    """,
-                    unsafe_allow_html=True
+                    """
                 )
         with card_col2:
             btn_text = "Opened ❤️" if is_opened else "Open 💌"
@@ -1394,7 +1360,7 @@ def scene_little_memories():
                 st.session_state.opened_memories = set(range(len(memories)))
                 st.rerun()
 
-    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+    render_html("<div style='height: 20px;'></div>")
 
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
     with col_btn2:
@@ -1403,7 +1369,7 @@ def scene_little_memories():
 
 
 # -----------------------------------------------------------------------------
-# 11. SCENE 6: "WHY I LOVE YOU"
+# 12. SCENE 6: "WHY I LOVE YOU"
 # -----------------------------------------------------------------------------
 def scene_why_i_love_you():
     """Scene 6: Interactive heart cards revealing reasons why she is so special."""
@@ -1419,15 +1385,14 @@ def scene_why_i_love_you():
         "And honestly... I don't need a reason to love you. Loving you is as natural as breathing. ❤️"
     ]
 
-    st.markdown(
+    render_html(
         """
         <div class="scrapbook-card">
             <div class="washi-tape"></div>
             <div class="handwritten-title">A few reasons why you're so special to me...</div>
             <div class="handwritten-subtitle">Tap each glowing heart to reveal what's inside 💖</div>
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     r_cols = [st.columns(3), st.columns(3), st.columns(3)]
@@ -1437,7 +1402,7 @@ def scene_why_i_love_you():
         with flat_cols[idx]:
             is_revealed = idx in st.session_state.revealed_reasons
             if is_revealed:
-                st.markdown(
+                render_html(
                     f"""
                     <div class="reason-box" style="background:#FFE5D9; border-color:#E76F51; font-weight:600;">
                         <div>
@@ -1445,11 +1410,10 @@ def scene_why_i_love_you():
                             {reason}
                         </div>
                     </div>
-                    """,
-                    unsafe_allow_html=True
+                    """
                 )
             else:
-                st.markdown(
+                render_html(
                     f"""
                     <div class="reason-box anim-pulse">
                         <div>
@@ -1459,8 +1423,7 @@ def scene_why_i_love_you():
                             </span>
                         </div>
                     </div>
-                    """,
-                    unsafe_allow_html=True
+                    """
                 )
             
             btn_txt = "Hide 💕" if is_revealed else f"Reveal #{idx + 1} ❤️"
@@ -1471,7 +1434,6 @@ def scene_why_i_love_you():
                     st.session_state.revealed_reasons.add(idx)
                 st.rerun()
 
-    # Reveal all reasons button
     if len(st.session_state.revealed_reasons) < len(reasons):
         col_ra1, col_ra2, col_ra3 = st.columns([1, 2, 1])
         with col_ra2:
@@ -1479,7 +1441,7 @@ def scene_why_i_love_you():
                 st.session_state.revealed_reasons = set(range(len(reasons)))
                 st.rerun()
 
-    st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
+    render_html("<div style='height: 25px;'></div>")
 
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
     with col_btn2:
@@ -1488,33 +1450,31 @@ def scene_why_i_love_you():
 
 
 # -----------------------------------------------------------------------------
-# 12. SCENE 7: "CHOOSE A PENGUIN"
+# 13. SCENE 7: "CHOOSE A PENGUIN"
 # -----------------------------------------------------------------------------
 def scene_choose_penguin():
     """Scene 7: 3 adorable penguins holding gift boxes with interactive reveals and actions."""
-    st.markdown(
+    render_html(
         """
         <div class="scrapbook-card">
             <div class="washi-tape washi-tape-pink"></div>
             <div class="handwritten-title">Choose a penguin 🐧</div>
             <div class="handwritten-subtitle">Each one has a special surprise just for you...</div>
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     col_p1, col_p2, col_p3 = st.columns(3)
 
     with col_p1:
-        st.markdown(
+        render_html(
             f"""
             <div class="penguin-card">
                 {render_kawaii_penguin_svg(accessory="letter", size=170)}
                 <div class="polaroid-caption" style="font-size:1.4rem;">Penguin #1 💌</div>
                 <div class="cute-tag">sweet reminder</div>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
         if st.button("Choose Penguin 1 💌", key="p1_btn"):
             st.session_state.selected_penguin = 1
@@ -1522,15 +1482,14 @@ def scene_choose_penguin():
             st.rerun()
 
     with col_p2:
-        st.markdown(
+        render_html(
             f"""
             <div class="penguin-card">
                 {render_kawaii_penguin_svg(accessory="gift", size=170)}
                 <div class="polaroid-caption" style="font-size:1.4rem;">Penguin #2 🎁</div>
                 <div class="cute-tag">gift coupons</div>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
         if st.button("Choose Penguin 2 🎁", key="p2_btn"):
             st.session_state.selected_penguin = 2
@@ -1538,27 +1497,25 @@ def scene_choose_penguin():
             st.rerun()
 
     with col_p3:
-        st.markdown(
+        render_html(
             f"""
             <div class="penguin-card">
                 {render_kawaii_penguin_svg(accessory="heart", size=170)}
                 <div class="polaroid-caption" style="font-size:1.4rem;">Penguin #3 ❤️</div>
                 <div class="cute-tag">the most important</div>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
         if st.button("Choose Penguin 3 ❤️", key="p3_btn"):
             st.session_state.selected_penguin = 3
             st.session_state.penguin_action_done = None
             st.rerun()
 
-    # Reveal the Selected Penguin's Surprise with interactive action button
     sel = st.session_state.selected_penguin
     if sel is not None:
-        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 20px;'></div>")
         if sel == 1:
-            st.markdown(
+            render_html(
                 """
                 <div class="scrapbook-card anim-pulse" style="border: 2px solid #E76F51; background: #FFFBF5;">
                     <span class="cute-tag">💌 Penguin 1 gave you a reminder:</span>
@@ -1570,8 +1527,7 @@ def scene_choose_penguin():
                         <p>👑 And you deserve every single good thing coming your way in life.</p>
                     </div>
                 </div>
-                """,
-                unsafe_allow_html=True
+                """
             )
             col_act1, col_act2, col_act3 = st.columns([1, 2, 1])
             with col_act2:
@@ -1581,10 +1537,10 @@ def scene_choose_penguin():
                         st.balloons()
                         st.rerun()
                 else:
-                    st.markdown("<div style='text-align:center;'><span class='cute-tag' style='background:#FFE5D9;'>Saved in your heart forever 🌸🔐</span></div>", unsafe_allow_html=True)
+                    render_html("<div style='text-align:center;'><span class='cute-tag' style='background:#FFE5D9;'>Saved in your heart forever 🌸🔐</span></div>")
 
         elif sel == 2:
-            st.markdown(
+            render_html(
                 """
                 <div class="scrapbook-card anim-pulse" style="border: 2px solid #E76F51; background: #FFFBF5;">
                     <span class="cute-tag">🎁 Penguin 2 opened your gift box:</span>
@@ -1596,8 +1552,7 @@ def scene_choose_penguin():
                         <p>❤️ <b>And one partner</b> who promises to keep loving you forever and ever</p>
                     </div>
                 </div>
-                """,
-                unsafe_allow_html=True
+                """
             )
             col_act1, col_act2, col_act3 = st.columns([1, 2, 1])
             with col_act2:
@@ -1607,10 +1562,10 @@ def scene_choose_penguin():
                         st.balloons()
                         st.rerun()
                 else:
-                    st.markdown("<div style='text-align:center;'><span class='cute-tag' style='background:#F7CAD0;'>Coupons claimed & valid for life! 🥰✨</span></div>", unsafe_allow_html=True)
+                    render_html("<div style='text-align:center;'><span class='cute-tag' style='background:#F7CAD0;'>Coupons claimed & valid for life! 🥰✨</span></div>")
 
         elif sel == 3:
-            st.markdown(
+            render_html(
                 """
                 <div class="scrapbook-card anim-pulse" style="border: 2px solid #E76F51; background: #FFFBF5;">
                     <span class="cute-tag">❤️ Penguin 3 handed you the ultimate gift:</span>
@@ -1623,8 +1578,7 @@ def scene_choose_penguin():
                         It's already yours anyway, my Sona. ❤️
                     </p>
                 </div>
-                """,
-                unsafe_allow_html=True
+                """
             )
             col_act1, col_act2, col_act3 = st.columns([1, 2, 1])
             with col_act2:
@@ -1634,18 +1588,17 @@ def scene_choose_penguin():
                         st.balloons()
                         st.rerun()
                 else:
-                    st.markdown("<div style='text-align:center;'><span class='cute-tag' style='background:#FFE5D9;'>It will always belong to you, Baby ❤️</span></div>", unsafe_allow_html=True)
+                    render_html("<div style='text-align:center;'><span class='cute-tag' style='background:#FFE5D9;'>It will always belong to you, Baby ❤️</span></div>")
 
         # The Secret Finale Trigger
-        st.markdown(
+        render_html(
             """
             <div style="text-align:center; margin: 30px 0 15px 0;">
                 <p style="font-family:'Patrick Hand', cursive; font-size:1.8rem; color:#E76F51; font-weight:700;">
                     "Wait... there is still one more thing." 👀✨
                 </p>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
         col_fin1, col_fin2, col_fin3 = st.columns([1, 2, 1])
@@ -1656,20 +1609,19 @@ def scene_choose_penguin():
 
 
 # -----------------------------------------------------------------------------
-# 13. FINAL SCENE: "FINAL LOVE REVEAL"
+# 14. FINAL SCENE: "FINAL LOVE REVEAL"
 # -----------------------------------------------------------------------------
 def scene_final_reveal():
     """Scene 8: Grand finale, staged handwriting I LOVE YOU, music player, easter egg, and reset."""
     st.balloons()
 
-    st.markdown(
+    render_html(
         """
         <div class="scrapbook-card">
             <div class="washi-tape washi-tape-pink"></div>
             <div class="washi-tape-corner-left"></div>
             <div class="washi-tape-corner-right"></div>
             
-            <!-- Staged Animated Handwriting Sequence -->
             <div style="padding: 20px 0;">
                 <div class="hw-line1" style="font-family:'Caveat', cursive; font-size:2.8rem; color:#F4A261;">
                     I
@@ -1686,7 +1638,6 @@ def scene_final_reveal():
                 <span class="cute-tag">✨ HAPPY BIRTHDAY MY SONA ❤️ ✨</span>
             </div>
 
-            <!-- Heartfelt Closing Message -->
             <div style="font-family:'Caveat', cursive; font-size:2.2rem; color:#4A3525; line-height:1.6; max-width:680px; margin:20px auto; text-align:center;">
                 <p>
                     Thank you for being part of my life.
@@ -1705,63 +1656,58 @@ def scene_final_reveal():
                 </div>
             </div>
 
-            <!-- Floating Doodles & Stickers -->
             <div style="margin: 20px 0; font-size: 2rem;">
                 🌸 ✨ 🎂 💌 🐧 🎁 💖
             </div>
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     # Background Music Player Card
     music_file = find_music_file()
-    st.markdown(
+    render_html(
         """
         <div class="scrapbook-card" style="padding: 20px; background: #FFF9F2;">
             <div class="washi-tape" style="top:-10px; width:100px; height:20px;"></div>
             <div style="font-family:'Patrick Hand', cursive; font-size:1.5rem; color:#E76F51; font-weight:700; margin-bottom:8px;">
                 🎵 Play our song
             </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     if music_file:
         audio_bytes = get_audio_bytes(music_file)
         if audio_bytes:
             st.audio(audio_bytes, format="audio/mp3")
-            st.markdown(
-                f"<div style='font-size:0.95rem; color:#8C533C; font-family:sans-serif;'>Playing: <b>{music_file.name}</b> 🎶</div>",
-                unsafe_allow_html=True
+            render_html(
+                f"<div style='font-size:0.95rem; color:#8C533C; font-family:sans-serif;'>Playing: <b>{music_file.name}</b> 🎶</div>"
             )
     else:
-        st.markdown(
+        render_html(
             """
             <p style="font-family:'Patrick Hand', cursive; font-size:1.15rem; color:#8C533C;">
                 Put your favorite romantic song in <code>assets/music/birthday_song.mp3</code> to hear it here!
             </p>
-            """,
-            unsafe_allow_html=True
+            """
         )
         uploaded_song = st.file_uploader("Or upload your song here right now 🎶:", type=["mp3", "wav", "m4a"], key="song_uploader")
         if uploaded_song:
             st.audio(uploaded_song)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    render_html("</div>")
 
     # Secret Easter Egg
-    st.markdown("<div style='text-align:center; margin: 30px 0 10px 0;'>", unsafe_allow_html=True)
+    render_html("<div style='text-align:center; margin: 30px 0 10px 0;'>")
     col_e1, col_e2, col_e3 = st.columns([1, 1.5, 1])
     with col_e2:
-        st.markdown('<div class="btn-soft">', unsafe_allow_html=True)
+        render_html('<div class="btn-soft">')
         if st.button("Don't click this heart 👀", key="easter_egg_btn"):
             st.session_state.easter_egg_clicked = not st.session_state.easter_egg_clicked
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+        render_html('</div>')
 
     if st.session_state.easter_egg_clicked:
-        st.markdown(
+        render_html(
             """
             <div style="text-align:center; margin: 15px auto;">
                 <div class="speech-bubble anim-pulse" style="background:#FFE5D9; border-color:#E76F51;">
@@ -1773,22 +1719,21 @@ def scene_final_reveal():
                     </div>
                 </div>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
     # Experience Again Reset Button
-    st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
+    render_html("<div style='height: 35px;'></div>")
     col_r1, col_r2, col_r3 = st.columns([1, 1.6, 1])
     with col_r2:
-        st.markdown('<div class="btn-soft">', unsafe_allow_html=True)
+        render_html('<div class="btn-soft">')
         if st.button("Experience it again ❤️", key="reset_btn"):
             reset_experience()
-        st.markdown('</div>', unsafe_allow_html=True)
+        render_html('</div>')
 
 
 # -----------------------------------------------------------------------------
-# 14. MAIN APPLICATION ROUTER
+# 15. MAIN APPLICATION ROUTER
 # -----------------------------------------------------------------------------
 def main():
     """Main routing controller orchestrating the 8 scrapbook stages."""
