@@ -143,19 +143,44 @@ def get_audio_bytes(filepath: Path):
         pass
     return None
 
-def find_music_file():
-    """Finds available birthday song in mp3, wav, m4a, or ogg format."""
-    candidates = [
+def find_audio_files():
+    """Finds available birthday song and personal voice note files."""
+    song_candidates = [
         MUSIC_DIR / "birthday_song.mp3",
-        MUSIC_DIR / "birthday_song.wav",
         MUSIC_DIR / "birthday_song.m4a",
+        MUSIC_DIR / "birthday_song.wav",
         MUSIC_DIR / "birthday_song.ogg",
-        MUSIC_DIR / "birthday_chime.wav",
+        MUSIC_DIR / "birthday_song.aac",
     ]
-    for c in candidates:
-        if c.exists():
-            return c
-    return None
+    voice_candidates = [
+        MUSIC_DIR / "my_voice.mp3",
+        MUSIC_DIR / "my_voice.m4a",
+        MUSIC_DIR / "my_voice.wav",
+        MUSIC_DIR / "my_voice.ogg",
+        MUSIC_DIR / "voice_note.mp3",
+        MUSIC_DIR / "voice_note.m4a",
+        MUSIC_DIR / "voice_note.wav",
+    ]
+    song = None
+    for s in song_candidates:
+        if s.exists():
+            song = s
+            break
+    if not song and (MUSIC_DIR / "birthday_chime.wav").exists():
+        song = MUSIC_DIR / "birthday_chime.wav"
+
+    voice = None
+    for v in voice_candidates:
+        if v.exists():
+            voice = v
+            break
+
+    return song, voice
+
+def find_music_file():
+    """Backward compatible wrapper returning primary audio file."""
+    s, _ = find_audio_files()
+    return s
 
 
 # -----------------------------------------------------------------------------
@@ -1663,8 +1688,10 @@ def scene_final_reveal():
         """
     )
 
-    # Background Music Player Card
-    music_file = find_music_file()
+    # Audio Section: Background Song & Personal Voice Note
+    song_file, voice_file = find_audio_files()
+
+    # 1. Background Song Player Card
     render_html(
         """
         <div class="scrapbook-card" style="padding: 20px; background: #FFF9F2;">
@@ -1674,27 +1701,85 @@ def scene_final_reveal():
             </div>
         """
     )
-
-    if music_file:
-        audio_bytes = get_audio_bytes(music_file)
-        if audio_bytes:
-            st.audio(audio_bytes, format="audio/mp3")
+    if song_file:
+        s_bytes = get_audio_bytes(song_file)
+        if s_bytes:
+            st.audio(s_bytes)
             render_html(
-                f"<div style='font-size:0.95rem; color:#8C533C; font-family:sans-serif;'>Playing: <b>{music_file.name}</b> 🎶</div>"
+                f"<div style='font-size:0.95rem; color:#8C533C; font-family:sans-serif;'>Playing: <b>{song_file.name}</b> 🎶</div>"
             )
-    else:
+    render_html("</div>")
+
+    # 2. Personal Voice Note Card (if voice file is added)
+    if voice_file:
         render_html(
             """
-            <p style="font-family:'Patrick Hand', cursive; font-size:1.15rem; color:#8C533C;">
-                Put your favorite romantic song in <code>assets/music/birthday_song.mp3</code> to hear it here!
-            </p>
+            <div class="scrapbook-card anim-pulse" style="padding: 22px 20px; background: #FFF5F2; border: 2px dashed #E76F51;">
+                <div class="washi-tape washi-tape-pink" style="top:-10px; width:130px; height:20px;"></div>
+                <div style="font-family:'Caveat', cursive; font-size:2.0rem; color:#E76F51; font-weight:700; margin-bottom:4px;">
+                    🎙️ A Voice Message For My Sona ❤️
+                </div>
+                <div style="font-family:'Patrick Hand', cursive; font-size:1.2rem; color:#6E473B; margin-bottom:10px;">
+                    "Listen to my voice straight from my heart..."
+                </div>
             """
         )
-        uploaded_song = st.file_uploader("Or upload your song here right now 🎶:", type=["mp3", "wav", "m4a"], key="song_uploader")
-        if uploaded_song:
-            st.audio(uploaded_song)
+        v_bytes = get_audio_bytes(voice_file)
+        if v_bytes:
+            st.audio(v_bytes)
+            render_html(
+                f"<div style='font-size:0.95rem; color:#8C533C; font-family:sans-serif;'>Playing Voice Note: <b>{voice_file.name}</b> 🎙️</div>"
+            )
+        render_html("</div>")
 
-    render_html("</div>")
+    # 3. Easy Upload / Change Audio Expander
+    with st.expander("🎵 Change This Song or Add Your Voice Note 🎙️"):
+        st.markdown(
+            """
+            <div style="font-family:'Patrick Hand', cursive; font-size:1.2rem; color:#5C4033; margin-bottom:10px;">
+                Aap yaha se directly apna romantic song ya apni voice recording upload kar sakte hain:
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        audio_choice = st.radio(
+            "What do you want to upload?",
+            ["🎵 Background Song (replaces current song)", "🎙️ Personal Voice Note (plays as your voice message)"],
+            key="audio_choice_radio"
+        )
+        user_audio = st.file_uploader(
+            "Choose audio file from your phone or PC (.mp3, .m4a, .wav):",
+            type=["mp3", "m4a", "wav", "ogg", "aac"],
+            key="custom_audio_uploader"
+        )
+        if user_audio is not None:
+            if st.button("Save & Apply Audio Now ❤️", key="apply_audio_btn"):
+                ext = Path(user_audio.name).suffix.lower()
+                if "Background Song" in audio_choice:
+                    for old_ext in [".mp3", ".m4a", ".wav", ".ogg", ".aac"]:
+                        old_p = MUSIC_DIR / f"birthday_song{old_ext}"
+                        if old_p.exists():
+                            try:
+                                old_p.unlink()
+                            except Exception:
+                                pass
+                    target = MUSIC_DIR / f"birthday_song{ext}"
+                    with open(target, "wb") as f:
+                        f.write(user_audio.getbuffer())
+                    st.success("🎉 Background song updated successfully!")
+                else:
+                    for old_ext in [".mp3", ".m4a", ".wav", ".ogg"]:
+                        old_p = MUSIC_DIR / f"my_voice{old_ext}"
+                        if old_p.exists():
+                            try:
+                                old_p.unlink()
+                            except Exception:
+                                pass
+                    target = MUSIC_DIR / f"my_voice{ext}"
+                    with open(target, "wb") as f:
+                        f.write(user_audio.getbuffer())
+                    st.success("🎉 Voice note added successfully!")
+                st.rerun()
 
     # Secret Easter Egg
     render_html("<div style='text-align:center; margin: 30px 0 10px 0;'>")
