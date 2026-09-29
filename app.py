@@ -1298,6 +1298,49 @@ def scene_photo_scrapbook():
         """
     )
 
+    with st.expander("📸 Click here to upload or replace photos directly from browser 🖼️"):
+        st.markdown(
+            """
+            <div style="font-family:'Patrick Hand', cursive; font-size:1.2rem; color:#5C4033; margin-bottom:10px;">
+                Aap yaha se directly koi bhi photo upload karke replace kar sakte hain:
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        photo_slot = st.selectbox(
+            "Which photo do you want to change?",
+            [
+                "Photo 1 - My Love ❤️ (Polaroid on Letter & Collage)",
+                "Photo 2 - My Baby 🌸 (Heart-shaped frame)",
+                "Photo 3 - My Sona ✨ (Rounded frame)",
+                "Photo 4 - My Mona 🍰 (Vintage polaroid)",
+                "Photo 5 - My Favorite Person 🥰 (Circular frame)",
+                "Photo 6 - My Amar Paakhi 🐦❤️ (Postage stamp frame)"
+            ],
+            key="photo_slot_select"
+        )
+        new_photo = st.file_uploader(
+            "Choose a photo (.jpg, .jpeg, .png, .webp):",
+            type=["jpg", "jpeg", "png", "webp"],
+            key="custom_photo_uploader"
+        )
+        if new_photo is not None:
+            if st.button("Save & Apply Photo Now ❤️", key="apply_photo_btn"):
+                slot_num = photo_slot.split(" - ")[0].replace("Photo ", "").strip()
+                for old_ext in [".jpg", ".jpeg", ".png", ".webp", ".JPG", ".PNG"]:
+                    old_f = PHOTOS_DIR / f"photo{slot_num}{old_ext}"
+                    if old_f.exists():
+                        try:
+                            old_f.unlink()
+                        except Exception:
+                            pass
+                ext = Path(new_photo.name).suffix.lower()
+                target_img = PHOTOS_DIR / f"photo{slot_num}{ext}"
+                with open(target_img, "wb") as f:
+                    f.write(new_photo.getbuffer())
+                st.success(f"🎉 Photo {slot_num} successfully updated!")
+                st.rerun()
+
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
     with col_btn2:
         if st.button("Our Little Memories 📖❤️", key="to_memories_btn"):
